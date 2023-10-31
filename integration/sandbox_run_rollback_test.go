@@ -132,6 +132,7 @@ func TestRunPodSandboxWithShimDeleteFailure(t *testing.T) {
 			require.Len(t, l, 1)
 
 			sb := l[0]
+			require.Greater(t, sb.CreatedAt, int64(0))
 			require.Equal(t, sb.State, criapiv1.PodSandboxState_SANDBOX_NOTREADY)
 			require.Equal(t, sb.Metadata.Name, sbConfig.Metadata.Name)
 			require.Equal(t, sb.Metadata.Namespace, sbConfig.Metadata.Namespace)
@@ -152,6 +153,7 @@ func TestRunPodSandboxWithShimDeleteFailure(t *testing.T) {
 				l, err = runtimeService.ListPodSandbox(&criapiv1.PodSandboxFilter{Id: sb.Id})
 				require.NoError(t, err)
 				require.Len(t, l, 1)
+				require.Greater(t, l[0].CreatedAt, int64(0))
 				require.Equal(t, l[0].State, criapiv1.PodSandboxState_SANDBOX_NOTREADY)
 
 				t.Log("Check PodSandboxStatus")
@@ -211,6 +213,7 @@ func TestRunPodSandboxWithShimStartAndTeardownCNIFailure(t *testing.T) {
 			require.Len(t, l, 1)
 
 			sb := l[0]
+			require.Greater(t, sb.CreatedAt, int64(0))
 			require.Equal(t, sb.State, criapiv1.PodSandboxState_SANDBOX_NOTREADY)
 			require.Equal(t, sb.Metadata.Name, sbConfig.Metadata.Name)
 			require.Equal(t, sb.Metadata.Namespace, sbConfig.Metadata.Namespace)
@@ -225,6 +228,7 @@ func TestRunPodSandboxWithShimStartAndTeardownCNIFailure(t *testing.T) {
 				l, err = runtimeService.ListPodSandbox(&criapiv1.PodSandboxFilter{Id: sb.Id})
 				require.NoError(t, err)
 				require.Len(t, l, 1)
+				require.Greater(t, l[0].CreatedAt, int64(0))
 				require.Equal(t, l[0].State, criapiv1.PodSandboxState_SANDBOX_NOTREADY)
 			}
 
@@ -295,6 +299,7 @@ func TestRunPodSandboxAndTeardownCNISlow(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
+	require.Greater(t, sb.CreatedAt, int64(0))
 	assert.Equal(t, sb.State, criapiv1.PodSandboxState_SANDBOX_NOTREADY)
 	assert.Equal(t, sb.Metadata.Name, sbConfig.Metadata.Name)
 	assert.Equal(t, sb.Metadata.Namespace, sbConfig.Metadata.Namespace)

@@ -177,6 +177,20 @@ func (c *criService) RunPodSandbox(ctx context.Context, r *runtime.RunPodSandbox
 	// Add container into sandbox store in INIT state.
 	sandbox.Container = container
 
+	// Update sandbox created timestamp.
+	info, err := container.Info(ctx, containerd.WithoutRefreshedMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sandbox container info: %w", err)
+	}
+
+	if err := sandbox.Status.Update(func(status sandboxstore.Status) (sandboxstore.Status, error) {
+		// Set CreatedAt after successfully create sandbox container.
+		status.CreatedAt = info.CreatedAt
+		return status, nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to update sandbox status: %w", err)
+	}
+
 	defer func() {
 		// Put the sandbox into sandbox store when the some resource fails to be cleaned.
 		if retErr != nil && cleanupErr != nil {
@@ -240,12 +254,6 @@ func (c *criService) RunPodSandbox(ctx context.Context, r *runtime.RunPodSandbox
 			}
 		}
 	}()
-
-	// Update sandbox created timestamp.
-	info, err := container.Info(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sandbox container info: %w", err)
-	}
 
 	podNetwork := true
 
@@ -390,7 +398,6 @@ func (c *criService) RunPodSandbox(ctx context.Context, r *runtime.RunPodSandbox
 		// Set the pod sandbox as ready after successfully start sandbox container.
 		status.Pid = task.Pid()
 		status.State = sandboxstore.StateReady
-		status.CreatedAt = info.CreatedAt
 		return status, nil
 	}); err != nil {
 		return nil, fmt.Errorf("failed to update sandbox status: %w", err)
